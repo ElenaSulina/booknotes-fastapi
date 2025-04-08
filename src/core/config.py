@@ -28,7 +28,7 @@ class Settings(BaseSettings):
 
     def assemble_database_uri(self):
         return PostgresDsn.build(
-            scheme="postgresql+psycopg",
+            scheme="postgresql+asyncpg",
             username=self.POSTGRES_USER,
             password=self.POSTGRES_PASSWORD.get_secret_value(),
             host=self.POSTGRES_HOST,

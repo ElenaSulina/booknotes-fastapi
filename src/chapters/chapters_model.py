@@ -1,7 +1,7 @@
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, relationship, mapped_column
 
-from core.database import Base
+from core.sync_database import Base
 
 
 class Chapter(Base):

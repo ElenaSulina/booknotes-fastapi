@@ -4,12 +4,12 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from passlib.context import CryptContext
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 import jwt
 
 from core.config import config
-from core.database import create_session
+from core.database import create_async_session
 from src.users.users_model import User
 from src.auth.auth_schema import Token
 from src.users.users_service import UsersService
@@ -19,9 +19,9 @@ from src.users.users_schema import CreateUserSchema
 class AuthService:
 
     @classmethod
-    def authenticate_user(cls, session: Session, username, password):
+    async def authenticate_user(cls, session: AsyncSession, username, password):
         query = select(User).where(User.email == username)
-        result = session.execute(query)
+        result = await session.execute(query)
         user = result.scalar()
 
         if not user:
@@ -55,10 +55,10 @@ class AuthService:
         return Token(access_token=encoded_jwt, token_type="bearer")
 
     @classmethod
-    def get_current_user(
+    async def get_current_user(
         cls,
         token: Annotated[str, Depends(config.oauth2_scheme)],
-        session: Session = Depends(create_session),
+        session: AsyncSession = Depends(create_async_session),
     ):
         payload = jwt.decode(
             token,
@@ -67,11 +67,11 @@ class AuthService:
         )
         username = payload.get("sub")
 
-        return UsersService.get_user_by_email(session, email=username)
+        return await UsersService.get_user_by_email(session, email=username)
 
     @classmethod
-    def login(cls, session: Session, username, password) -> Token:
-        user = cls.authenticate_user(session, username, password)
+    async def login(cls, session: AsyncSession, username, password) -> Token:
+        user = await cls.authenticate_user(session, username, password)
 
         if not user:
             raise HTTPException(
@@ -83,8 +83,8 @@ class AuthService:
         return cls.create_access_token(user)
 
     @classmethod
-    def signup(cls, session: Session, user_dto: CreateUserSchema) -> Token:
-        user = UsersService.create_user(session, user_dto)
+    async def signup(cls, session: AsyncSession, user_dto: CreateUserSchema) -> Token:
+        user = await UsersService.create_user(session, user_dto)
         return cls.create_access_token(user)
 
     @classmethod

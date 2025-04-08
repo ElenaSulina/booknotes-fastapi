@@ -5,7 +5,7 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from core.database import Base
+from core.sync_database import Base
 from books.books_model import Book
 from chapters.chapters_model import Chapter
 from notes.notes_model import Note
